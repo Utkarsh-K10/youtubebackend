@@ -117,5 +117,7 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+#progressfile
+.projectProgres.txt
 # End of https://mrkandreev.name/snippets/gitignore-generator/#Node
 .DS_Store
