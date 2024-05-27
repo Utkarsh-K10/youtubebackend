@@ -19,3 +19,8 @@ C-> setting up utils files for handling of reoccuring tasks and error.
    1. First util is for async handler which act as the wrapper for the various mongodb connection tasks.
    2. There are two ways of setting up the utils - first is to use promise concept and second one is by using the try-catch.
    3. Making wrapper for the custom error handling using the class and default API error class.
+   4. setting up cloudinary utlity for uploading the file from local storage
+
+D-> setting up utility to upload from cloudinary and setting up the multer file upload from the storage.
+   1. Upload mehtod from multer to cloudinary with middlewre and utility.
+   2. setting up the env file with cloudinary credential. 

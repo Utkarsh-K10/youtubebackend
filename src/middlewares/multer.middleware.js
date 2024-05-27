@@ -1,7 +1,6 @@
 import multer from "multer";
 
 
-
 const localStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, './public/temp')
@@ -12,4 +11,4 @@ const localStorage = multer.diskStorage({
     },
 })
 
-export const upload = multer({storage:localStorage}) //can also be send directly
+export const upload = multer({storage:localStorage, }) //can also be send directly
