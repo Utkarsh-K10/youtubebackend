@@ -5,18 +5,18 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { cloudinaryUploader } from "../utils/cloudinary.js";
 
 const registerUser = asyncHandler(async (req, res) => {
-    
+
     // when data is coming from JSON or FORM we use req.body
-    const { fullName, email, username, password } = req.body 
-    console.log("FullName: ",fullName)
+    const { fullName, email, username, password } = req.body
+    // console.log("FullName: ", fullName)
 
     //check if fields are empty and use error handler utility
-    if ([fullName, email, username, password].some((field) => field?.trim()=== "")) {
+    if ([fullName, email, username, password].some((field) => field?.trim() === "")) {
         throw new ApiErrorHandler(400, "all fields are mandatory")
     }
     // find user with email or username
     const existedUser = await User.findOne({
-        $or : [{username}, {email}]
+        $or: [{ username }, { email }]
     })
 
     // check user already exists in database and throw new error
@@ -24,12 +24,19 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiErrorHandler(409, "User with this email or username already exists")
     }
 
+    // console.log(req.files)
     // now take the localfile path from multer 
     const avatarLocalpath = req.files?.avatar[0]?.path
-    const profilePicLocalpath = req.files?.profilePic[0]?.path
+    
+    // const profilePicLocalpath = req.files?.profilePic[0]?.path 
+    // OR 
+    let profilePicLocalpath
+    if (req.files && Array.isArray(req.files.profilePic) && req.files.profilePic.length > 0) {
+        profilePicLocalpath  = req.files.profilePic[0].path
+    }
 
     // check if avatar local path available
-    if(!avatarLocalpath){
+    if (!avatarLocalpath) {
         throw new ApiErrorHandler(400, "Avatar is Required")
     }
 
@@ -46,7 +53,7 @@ const registerUser = asyncHandler(async (req, res) => {
         fullName,
         email,
         password,
-        username : username.toLowerCase(),
+        username: username.toLowerCase(),
         avatar: avatar.url,
         profilePic: profilePic?.url || ""
     })
@@ -56,7 +63,7 @@ const registerUser = asyncHandler(async (req, res) => {
         "-password -refreshToken"
     )
 
-    if(!createdUser){
+    if (!createdUser) {
         throw new ApiErrorHandler(500, "Something went wrong while Registering user")
     }
 
