@@ -4,17 +4,17 @@ import { upload } from "../middlewares/multer.middleware.js";
 const userRouter = Router()
 
 userRouter.route("/register").post(
-    upload.fields(                              // middleware injection
+    upload.fields([
         {
             name: "avatar",
-            maxCount : 1
-
+            maxCount: 1
         },
         {
-            name : "profilePic",
-            maxCount : 1
+            name: "profilePic",
+            maxCount: 1
         }
-    ),
+
+    ]),                              // middleware injection
     registerUser
 )
 
