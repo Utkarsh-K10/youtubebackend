@@ -36,10 +36,10 @@ const userSchema = new Schema(
         profilePic: {
             type: String //image url
         },
-        watchHistory: {
+        watchHistory: [{
             type: Schema.Types.ObjectId,
             ref: "Video"
-        },
+        }],
         refreshToken: {
             type: String
         }

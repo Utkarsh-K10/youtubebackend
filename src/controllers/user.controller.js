@@ -15,7 +15,7 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiErrorHandler(400, "all fields are mandatory")
     }
     // find user with email or username
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or : [{username}, {email}]
     })
 
@@ -39,13 +39,16 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiErrorHandler(400, "Avatar is Required")
     }
 
+    const profilePic = await cloudinaryUploader(profilePicLocalpath)
+
     // create user finally
     const user = await User.create({
         fullName,
         email,
+        password,
         username : username.toLowerCase(),
         avatar: avatar.url,
-        profilePic: profilePicLocalpath?.url || ""
+        profilePic: profilePic?.url || ""
     })
 
     // removing password and refreshtoken from the created user response
