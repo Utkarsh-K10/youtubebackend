@@ -1,5 +1,5 @@
 // utils for async handler with the help of the promise concept # 1 way
-const asyncHandler = async (requestHandler) => {
+const asyncHandler = (requestHandler) => {
     return (req, res, next) => {
         Promise.resolve(requestHandler(req, res, next)).
             catch((error) => {
@@ -9,6 +9,7 @@ const asyncHandler = async (requestHandler) => {
 }
 
 export {asyncHandler}
+
 // #2nd way of the async handler using the try catch block
 /*
 const asyncHandler = (fn) => async (req, res, next) => {
