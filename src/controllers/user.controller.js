@@ -4,6 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { cloudinaryUploader } from "../utils/cloudinary.js";
 
+// register user
 const registerUser = asyncHandler(async (req, res) => {
 
     // when data is coming from JSON or FORM we use req.body
@@ -27,12 +28,12 @@ const registerUser = asyncHandler(async (req, res) => {
     // console.log(req.files)
     // now take the localfile path from multer 
     const avatarLocalpath = req.files?.avatar[0]?.path
-    
+
     // const profilePicLocalpath = req.files?.profilePic[0]?.path 
     // OR 
     let profilePicLocalpath
     if (req.files && Array.isArray(req.files.profilePic) && req.files.profilePic.length > 0) {
-        profilePicLocalpath  = req.files.profilePic[0].path
+        profilePicLocalpath = req.files.profilePic[0].path
     }
 
     // check if avatar local path available
@@ -72,6 +73,15 @@ const registerUser = asyncHandler(async (req, res) => {
     )
 })
 
+const loginUser = asyncHandler(async (req, res) => {
+    // todo for login
+    // ask user email & password
+    // store acces token during register user and use that toekn to login
+    // token varification
+    // password and email verication with stired db data
+    // return and redirect to profile page
+
+})
 export { registerUser }
 
 // destructure user data from the forntend
