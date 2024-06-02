@@ -74,6 +74,29 @@ const registerUser = asyncHandler(async (req, res) => {
 })
 
 const loginUser = asyncHandler(async (req, res) => {
+    // DESTRUTURE THE REQ-BODY
+    const { username, email, password } = req.body
+
+    // CHECK EMAIL OR USERNAME EXISTS
+    if (!(username || email)) {
+        throw new ApiErrorHandler(409, "Username or email required")
+    }
+
+    // FIND USER WITH USERNAME OR EMAIL
+    const user = await User.findOne(
+        {
+            $or: [{ username }, { email }]
+        }
+    )
+
+    // validate user exits  or not
+    if (!user) {
+        throw new ApiErrorHandler(404, "user with this email does not exsits")
+    }
+
+    // validate password
+    const validatePassword = await User.isPasswordCorrect(password)
+
     // todo for login
     // ask user email & password
     // store acces token during register user and use that toekn to login
