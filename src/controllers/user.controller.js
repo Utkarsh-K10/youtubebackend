@@ -4,24 +4,23 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { cloudinaryUploader } from "../utils/cloudinary.js";
 
-const generateAccessToeknAndRefreshToken = async (UserId) => 
-    {
+const generateAccessToeknAndRefreshToken = async (UserId) => {
 
-        try {
-            const user = await User.findById(UserId)
+    try {
+        const user = await User.findById(UserId)
 
-            const accessToken = user.generateAccessToken()
+        const accessToken = user.generateAccessToken()
 
-            const refreshToken = user.generateRefreshToken()
+        const refreshToken = user.generateRefreshToken()
 
-            user.refreshToken = refreshToken
+        user.refreshToken = refreshToken
 
-            await user.save({ validateBeforeSave: false })
+        await user.save({ validateBeforeSave: false })
 
-            return { accessToken, refreshToken }
+        return { accessToken, refreshToken }
 
-        } catch (error) {
-            throw new ApiErrorHandler(500, "Somethig went wrong while generating tokens")
+    } catch (error) {
+        throw new ApiErrorHandler(500, "Somethig went wrong while generating tokens")
     }
 }
 // register user
@@ -93,35 +92,56 @@ const registerUser = asyncHandler(async (req, res) => {
     )
 })
 
-const loginUser = asyncHandler(async (req, res) => 
-    {
-        // DESTRUTURE THE REQ-BODY
-        const { username, email, password } = req.body
-        //.. Validata
-        if (!(username || email)) {
-            throw new ApiErrorHandler(409, "Username or email required")
-        }
+const loginUser = asyncHandler(async (req, res) => {
+    // DESTRUTURE THE REQ-BODY
+    const { username, email, password } = req.body
+    //.. Validata
+    if (!(username || email)) {
+        throw new ApiErrorHandler(409, "Username or email required")
+    }
 
-        // FIND USER WITH USERNAME OR EMAIL
-        const user = await User.findOne(
-            {
-                $or: [{ username }, { email }]
-            }
+    // FIND USER WITH USERNAME OR EMAIL
+    const user = await User.findOne(
+        {
+            $or: [{ username }, { email }]
+        }
+    )
+    //.. validate user exits  or not
+    if (!user) {
+        throw new ApiErrorHandler(404, "user with this email does not exsits")
+    }
+
+    // Find and validate password
+    const validatedPassword = await user.isPasswordCorrect(password)
+
+    if (!validatedPassword) {
+        throw new ApiErrorHandler(401, "Invalid Credentials")
+    }
+
+    // store acess and refresh token
+    const { accessToken, refreshToken } = await
+        generateAccessToeknAndRefreshToken(user._id)
+
+    const loggedInuser = await User.findById(user._id)
+        .select("-password -refreshToken")
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    res.status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    user: accessToken, loggedInuser, refreshToken
+                },
+                "User Login Successfully"
+            )
         )
-        //.. validate user exits  or not
-        if (!user) {
-            throw new ApiErrorHandler(404, "user with this email does not exsits")
-        }
-
-        // Find and validate password
-        const validatedPassword = await user.isPasswordCorrect(password)
-
-        if (!validatedPassword) {
-            throw new ApiErrorHandler(401, "Invalid Credentials")
-        }   
-
-        
-
     // todo for login
     // ask user email & password
     // store acces token during register user and use that toekn to login
@@ -130,7 +150,27 @@ const loginUser = asyncHandler(async (req, res) =>
     // return and redirect to profile page
 
 })
-export { registerUser }
+
+const logoutUser = asyncHandler(async (req, res) => {
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                refreshToken: undefined,
+            },
+        },
+        {
+            new: true
+        }
+    )
+
+    
+})
+export {
+    registerUser,
+    loginUser,
+    logoutUser
+}
 
 // destructure user data from the forntend
 // check if empty fields and various validation
