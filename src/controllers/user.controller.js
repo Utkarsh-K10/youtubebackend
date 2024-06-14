@@ -51,6 +51,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // const profilePicLocalpath = req.files?.profilePic[0]?.path 
     // OR 
+
     let profilePicLocalpath
     if (req.files && Array.isArray(req.files.profilePic) && req.files.profilePic.length > 0) {
         profilePicLocalpath = req.files.profilePic[0].path
@@ -60,7 +61,7 @@ const registerUser = asyncHandler(async (req, res) => {
     if (!avatarLocalpath) {
         throw new ApiErrorHandler(400, "Avatar is Required")
     }
-
+    console.log("avatar path",avatarLocalpath)
     // upload the avatar with the cloudinary uploader utility
     const avatar = await cloudinaryUploader(avatarLocalpath)
     if (!avatar) {
