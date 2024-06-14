@@ -221,11 +221,39 @@ const refreshAcesstoken = asyncHandler(async(req,res)=>{
     }
 })
 
+const changePasssword = asyncHandler(async(req, res)=>{
+    const {oldPassword, newPassword} = req.body
+
+    const user = await User.findById(req.user?._id)
+
+    const isPasswordcorrect = await user.isPasswordCorrect(oldPassword)
+
+    if (!isPasswordcorrect) {
+        throw new ApiErrorHandler(401, "Incorrect Old Password")
+    }
+
+    user.password = newPassword
+    
+    await user.save({validateBeforeSave:false})
+    return res
+})
+
+const getCurrentUser = asyncHandler(async(req, res)=>{
+    return res
+    .status(200)
+    .json(
+        200,
+        req.user,
+        "Curent User Fetched Sucessfully"
+    )
+})
 export {
     registerUser,
     loginUser,
     logoutUser,
-    refreshAcesstoken
+    refreshAcesstoken,
+    changePasssword,
+    getCurrentUser
 }
 
 // destructure user data from the forntend
