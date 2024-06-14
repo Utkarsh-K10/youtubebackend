@@ -3,6 +3,7 @@ import { ApiErrorHandler } from "../utils/ApiErrorHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { cloudinaryUploader } from "../utils/cloudinary.js";
+import jwt from "jsonwebtoken";
 
 const generateAccessToeknAndRefreshToken = async (UserId) => {
 
@@ -96,8 +97,8 @@ const loginUser = asyncHandler(async (req, res) => {
     // DESTRUTURE THE REQ-BODY
     const { username, email, password } = req.body
     //.. Validata
-    if (!(username || email)) {
-        throw new ApiErrorHandler(409, "Username or email required")
+    if (!username && !email){
+        throw new ApiErrorHandler(400, "Username or email required")
     }
 
     // FIND USER WITH USERNAME OR EMAIL
@@ -122,7 +123,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const { accessToken, refreshToken } = await
         generateAccessToeknAndRefreshToken(user._id)
 
-    const loggedInuser = await User.findById(user._id)
+    const loggedInuser = await User.findById(user._id) // object can also be updated
         .select("-password -refreshToken")
 
     const options = {
@@ -177,10 +178,53 @@ const logoutUser = asyncHandler(async (req, res) => {
         new ApiResponse(200, {}, "User loggedOut")
     )
 })
+
+const refreshAcesstoken = asyncHandler(async(req,res)=>{
+    
+    const incomingToken = req.cookie.refreshToken || req.body.refreshToken
+
+    if (!incomingToken) {
+        throw new ApiErrorHandler(401, "Unauthrized Access")
+    }
+
+    try {
+        const decodedToken = jwt.verify(incomingToken, process.env.REFRESH_TOKEN_SECRET)
+        
+        const user = await User.findById(decodedToken._id)
+    
+        if(!user){
+            throw new ApiErrorHandler(401, "Unauthorized Access")
+        }
+    
+        if (incomingToken !== user?.refreshToken) {
+            throw new ApiErrorHandler(401, "Invalid AccessToken or token lost")
+        }
+
+        const options = {
+            httpOnly:true,
+            secure:true
+        }
+
+        const {accessToken, newrefreshToken} = generateAccessToeknAndRefreshToken(user._id)
+        
+        return res
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", newrefreshToken, options)
+        .json(new ApiResponse(
+            200, 
+            {accessToken, refreshToken:newrefreshToken},
+            "refreshToken Refreshed")
+        )
+    } catch (error) {
+        throw new ApiErrorHandler(401, error?.message, "unauthorized Access")
+    }
+})
+
 export {
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    refreshAcesstoken
 }
 
 // destructure user data from the forntend

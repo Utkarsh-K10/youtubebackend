@@ -15,13 +15,14 @@ userRouter.route("/register").post(
             name: "profilePic",
             maxCount: 1
         }
-
     ]),                              // middleware injection
     registerUser
 )
 
 userRouter.route("/login").post(loginUser)
 
+// Secure routes
 userRouter.route("/logout").post(verifyJWT,logoutUser)
+
 
 export default userRouter
