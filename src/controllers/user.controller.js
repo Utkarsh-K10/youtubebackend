@@ -2,7 +2,7 @@ import { User } from "../models/user.models.js";
 import { ApiErrorHandler } from "../utils/ApiErrorHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { cloudinaryUploader } from "../utils/cloudinary.js";
+import { cloudinaryUploader, CloudinaryImageDeleter } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
 
 const generateAccessToeknAndRefreshToken = async (UserId) => {
@@ -311,6 +311,7 @@ const updateAvatar = asyncHandler(async (req, res) => {
 
 const updateCoverImage = asyncHandler(async(req, res) => {
     const coverImageLocalpath = req.file?.path 
+    const coverImagetobeDeleted = req.user?.coverImage // current cover image before update
 
     if(!coverImageLocalpath){
         throw new ApiErrorHandler(400, "File is Required to Update Cover Image")
@@ -321,12 +322,21 @@ const updateCoverImage = asyncHandler(async(req, res) => {
     if(!coverImage){
         throw new ApiErrorHandler(400, "Error while uploading Cover Image")
     }
-
     const user = await User.findByIdAndUpdate(
         req.user?._id, 
         {coverImage: coverImage.url}, 
         {new: true}
     ).select("-password")
+
+    // deleting old cover image from cloudinary 
+    try {
+        const deletedCoverimage = await CloudinaryImageDeleter(coverImagetobeDeleted)
+        if (!deletedCoverimage) {
+            throw new ApiErrorHandler(400, "Error while deleting old Cover Image")
+        }
+    } catch (error) {
+        throw new ApiErrorHandler(400, error?.message || "Error while deleting old Cover Image")
+    }
 
     return res
     .status(200)
