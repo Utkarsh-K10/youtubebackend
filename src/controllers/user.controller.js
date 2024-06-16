@@ -157,8 +157,8 @@ const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: {
-                refreshToken: undefined,
+            $unset: {
+                refreshToken: 1,
             },
         },
         {
@@ -222,7 +222,7 @@ const refreshAcesstoken = asyncHandler(async (req, res) => {
 });
 
 const changePasssword = asyncHandler(async (req, res) => {
-    const { oldPassword, newPassword } = req.body
+    const {oldPassword, newPassword} = req.body
 
     const user = await User.findById(req.user?._id)
 
@@ -232,10 +232,22 @@ const changePasssword = asyncHandler(async (req, res) => {
         throw new ApiErrorHandler(401, "Incorrect Old Password")
     }
 
+    if(newPassword.length===0){
+        throw new ApiErrorHandler(400, "Invalid New Password length")
+    }
+
     user.password = newPassword
 
     await user.save({ validateBeforeSave: false })
     return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            {},
+            "Password Changed Successfully"
+        )
+    )
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
@@ -250,7 +262,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 
 const updateUser = asyncHandler(async (req, res) => {
     const { fullName, email } = req.body
-
+    console.log("Fullname: ", fullName, "Email: ", email)
     if (!fullName || !email) {
         throw new ApiErrorHandler(400, "All Fields are mandatory")
     }
@@ -337,6 +349,7 @@ const updateCoverImage = asyncHandler(async(req, res) => {
     } catch (error) {
         throw new ApiErrorHandler(400, error?.message || "Error while deleting old Cover Image")
     }
+
 
     return res
     .status(200)
