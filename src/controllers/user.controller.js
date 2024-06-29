@@ -362,6 +362,25 @@ const updateCoverImage = asyncHandler(async(req, res) => {
     )
 });
 
+
+
+// pipeline for user channel profile
+
+const getUserChannelProfle = asyncHandler(async(req, res)=>{
+    const {username} = req.params
+
+    if(!username?.trim()){
+        throw new ApiErrorHandler(400, "Username is missing")
+    }
+
+    const channel = await User.aggregate([
+        {
+            $match: {username}
+        }
+    ])
+})
+
+
 export {
     registerUser,
     loginUser,
@@ -371,7 +390,8 @@ export {
     getCurrentUser,
     updateUser,
     updateAvatar,
-    updateCoverImage
+    updateCoverImage,
+    getUserChannelProfle
 }
 
 // destructure user data from the forntend
