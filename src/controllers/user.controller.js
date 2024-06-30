@@ -367,6 +367,7 @@ const updateCoverImage = asyncHandler(async(req, res) => {
 // pipeline for user channel profile
 
 const getUserChannelProfle = asyncHandler(async(req, res)=>{
+    
     const {username} = req.params
 
     if(!username?.trim()){
@@ -375,7 +376,54 @@ const getUserChannelProfle = asyncHandler(async(req, res)=>{
 
     const channel = await User.aggregate([
         {
-            $match: {username}
+            $match: {
+                username : username?.trim().toLowerCase()
+            }
+        },
+        {
+            $lookup: {
+                from: "subscriptions",
+                localField: "_id",
+                foreignFeild: "channel",
+                as: "subscribers"
+            }
+        },
+        {
+            $lookup: {
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "subscriber",
+                as: "subscribedTo"
+            }
+        },
+        {
+            $addFields: {
+                subscriberCount: {
+                    $size: "$subscribers"
+                },
+                subscribedToChannelCount: {
+                    $size: "$subscribedTo"
+                },
+                isSubscribed: {
+                    $cond: {
+                        if: {$in:[req.user?._id, "$subscribers.subscriber"]},
+                        then: true,
+                        else: false
+                    }
+                }
+            }
+        },
+        {
+            $project: {
+                email: 1,
+                username: 1,
+                fullName: 1,
+                avatar: 1,
+                coverImage: 1,
+                subscriberCount: 1,
+                subscribedToChannelCount: 1,
+                isSubscribed: 1
+            }
         }
     ])
 })
