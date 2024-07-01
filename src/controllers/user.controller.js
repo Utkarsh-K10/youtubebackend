@@ -362,10 +362,7 @@ const updateCoverImage = asyncHandler(async(req, res) => {
     )
 });
 
-
-
 // pipeline for user channel profile
-
 const getUserChannelProfle = asyncHandler(async(req, res)=>{
     
     const {username} = req.params
