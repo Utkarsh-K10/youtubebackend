@@ -33,7 +33,7 @@ const userSchema = new Schema(
         avatar: {
             type: String, //image url 
         },
-        profilePic: {
+        coverImage: {
             type: String //image url
         },
         watchHistory: [{

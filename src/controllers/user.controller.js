@@ -53,8 +53,8 @@ const registerUser = asyncHandler(async (req, res) => {
     // OR 
 
     let profilePicLocalpath
-    if (req.files && Array.isArray(req.files.profilePic) && req.files.profilePic.length > 0) {
-        profilePicLocalpath = req.files.profilePic[0].path
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+        profilePicLocalpath = req.files.coverImage[0].path
     }
 
     // check if avatar local path available
@@ -69,6 +69,9 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     const profilePic = await cloudinaryUploader(profilePicLocalpath)
+    if(!profilePic){
+        throw new ApiErrorHandler(400, "Error while uploading Cover Image")
+    }
 
     // create user finally
     const user = await User.create({
@@ -77,7 +80,7 @@ const registerUser = asyncHandler(async (req, res) => {
         password,
         username: username.toLowerCase(),
         avatar: avatar.url,
-        profilePic: profilePic?.url || ""
+        coverImage: profilePic?.url || ""
     })
 
     // removing password and refreshtoken from the created user response
@@ -254,9 +257,11 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     return res
         .status(200)
         .json(
-            200,
-            req.user,
-            "Curent User Fetched Sucessfully"
+            new ApiResponse(
+                200,
+                req.user,
+                "User Fetched Successfully"
+            )
         )
 });
 
@@ -304,11 +309,13 @@ const updateAvatar = asyncHandler(async (req, res) => {
         throw new ApiErrorHandler(400, "Error while uploading Avatar")
     }
 
-    const user = User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
         req.user?._id,
         { $set: { avatar: avatar.url } },
         { new: true })
         .select("-password")
+        
+        console.log(req.user?._id)
 
         return res
         .status(200)
@@ -324,7 +331,7 @@ const updateAvatar = asyncHandler(async (req, res) => {
 const updateCoverImage = asyncHandler(async(req, res) => {
     const coverImageLocalpath = req.file?.path 
     const coverImagetobeDeleted = req.user?.coverImage // current cover image before update
-
+    console.log("deleting image....",coverImagetobeDeleted)
     if(!coverImageLocalpath){
         throw new ApiErrorHandler(400, "File is Required to Update Cover Image")
     }
@@ -342,12 +349,9 @@ const updateCoverImage = asyncHandler(async(req, res) => {
 
     // deleting old cover image from cloudinary 
     try {
-        const deletedCoverimage = await CloudinaryImageDeleter(coverImagetobeDeleted)
-        if (!deletedCoverimage) {
-            throw new ApiErrorHandler(400, "Error while deleting old Cover Image")
-        }
+        await CloudinaryImageDeleter(coverImagetobeDeleted)
     } catch (error) {
-        throw new ApiErrorHandler(400, error?.message || "Error while deleting old Cover Image")
+        throw new ApiErrorHandler(400, error?.message || "Error!! while deleting old Cover Image")
     }
 
 
@@ -381,7 +385,7 @@ const getUserChannelProfle = asyncHandler(async(req, res)=>{
             $lookup: {
                 from: "subscriptions",
                 localField: "_id",
-                foreignFeild: "channel",
+                foreignField: "channel",
                 as: "subscribers"
             }
         },
