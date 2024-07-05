@@ -42,7 +42,7 @@ userRouter.route("/change-password").post(verifyJWT, changePasssword)
 userRouter.route("/currentUser").get(verifyJWT, getCurrentUser)
 userRouter.route("/update-account").patch(verifyJWT, updateUser)
 userRouter.route("/update-avatar").patch(verifyJWT,upload.single("avatar"), updateAvatar)
-userRouter.route("/update-coverImage").patch(verifyJWT, upload.single("/coverImage"), updateCoverImage)
+userRouter.route("/update-coverImage").patch(verifyJWT, upload.single("coverImage"), updateCoverImage)
 userRouter.route("/c/:username").get(verifyJWT,getUserChannelProfle)
 userRouter.route("/watchHistory").get(verifyJWT, getUserWatchHistory) //get because we are not getting sensitive data
 

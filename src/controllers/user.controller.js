@@ -1,9 +1,11 @@
 import { User } from "../models/user.models.js";
+import mongoose from "mongoose";
 import { ApiErrorHandler } from "../utils/ApiErrorHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { cloudinaryUploader, CloudinaryImageDeleter } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
+
 
 const generateAccessToeknAndRefreshToken = async (UserId) => {
 
@@ -330,8 +332,10 @@ const updateAvatar = asyncHandler(async (req, res) => {
 
 const updateCoverImage = asyncHandler(async(req, res) => {
     const coverImageLocalpath = req.file?.path 
+
     const coverImagetobeDeleted = req.user?.coverImage // current cover image before update
     console.log("deleting image....",coverImagetobeDeleted)
+
     if(!coverImageLocalpath){
         throw new ApiErrorHandler(400, "File is Required to Update Cover Image")
     }
@@ -348,12 +352,10 @@ const updateCoverImage = asyncHandler(async(req, res) => {
     ).select("-password")
 
     // deleting old cover image from cloudinary 
-    try {
-        await CloudinaryImageDeleter(coverImagetobeDeleted)
-    } catch (error) {
-        throw new ApiErrorHandler(400, error?.message || "Error!! while deleting old Cover Image")
+    const deletedCoverImage = await CloudinaryImageDeleter(coverImagetobeDeleted)
+    if(!deletedCoverImage){
+        throw new ApiErrorHandler(400, "Error while deleting")
     }
-
 
     return res
     .status(200)

@@ -33,7 +33,7 @@ const CloudinaryImageDeleter = async(url)=>{
         if(!url){
             return null
         }
-        const response = await cloudinary.uploader.destroy(url)
+        const response = await cloudinary.uploader.destroy( url.split("/").pop().split(".")[0], {resource_type: "image"})
         return response
     } catch (error) {
         throw new Error("Error while deleting the image from cloudinary")
