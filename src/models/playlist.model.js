@@ -7,6 +7,7 @@ const playlistSchema = new Schema({
     },
     description: {
         type: String,
+        requuired: true
     },
     videos: [{
         type: Schema.Types.ObjectId,
