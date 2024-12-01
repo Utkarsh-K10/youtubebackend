@@ -1,4 +1,4 @@
-#This is a youtube backend project 
+#This is a backend project 
 we are going to build a streaming project
 
 # First phase of project 
