@@ -1,5 +1,5 @@
 #This is a youtube backend project 
-we are going to build a youtube project with backend and twitter like support 
+we are going to build a streaming project
 
 # First phase of project 
 
